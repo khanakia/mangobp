@@ -1,0 +1,64 @@
+scalar Uint
+
+"""Arbitrary object"""
+scalar Any
+scalar UUID
+scalar Uid
+scalar Time
+scalar MyCustomBooleanScalar
+
+directive @inherits(type: String!) on OBJECT
+# e.g.
+# type UserFull @inherits(type: "UserPartial") {
+#   id: Uid!
+# }
+
+directive @hasCaptcha on FIELD_DEFINITION
+
+"""The basic directions"""
+enum SortDirection {
+  ASC
+  DESC
+}
+
+input SortOrderInput {
+  key: String!
+  value: SortDirection = ASC
+}
+
+type SortOrderOutput {
+  key: String
+  value: SortDirection
+}
+
+"""The basic FilterCondition"""
+enum FilterCondition {
+  AND
+  OR
+}
+
+enum FilterOperator {
+  LIKE
+  EQUALTO
+}
+
+input FilterInput {
+  condition: FilterCondition = AND
+  field: String!
+  type: String = "string"
+  operator: FilterOperator = EQUALTO
+  value: Any
+}
+
+input MetaInput {
+  limit: Int! = 10
+  orderBy: [SortOrderInput!]
+  offset: Int! = 0
+}
+
+type MetaOutput {
+  # limit: Int
+  # orderBy: [SortOrderOutput!]
+  # offset: Int
+  total: Int
+}

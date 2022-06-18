@@ -1,0 +1,33 @@
+vendor
+.env
+node_modules
+logs
+yarn.lock
+
+# ignore all files starting with . or ~
+##.*
+~*
+
+# ignore OS generated files
+.sass-cache
+.DS_Store
+ehthumbs.db
+Thumbs.db
+*.idea
+*.TMP
+*.tmp
+.vscode-upload.json
+
+# ignore Golang related files
+gin-bin
+jgo
+go.sum
+
+# Other
+/uploads/
+
+# fm
+config/default.yaml
+tmp/
+
+mangobp

@@ -1,0 +1,25 @@
+{
+  "name": "mango",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "air",
+    "start:nm": "nodemon -L --signal SIGTERM --exec 'go' run . server",
+    "cmd:migrate": "go run . plugin migratedb",
+    "wire": "cd wireapp && wire",
+    "gql": "cd apigql && go run github.com/99designs/gqlgen generate"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      ".git",
+      "node_modules/**/node_modules"
+    ],
+    "verbose": false,
+    "ext": "js,go",
+    "watch": [
+      "./"
+    ]
+  },
+  "dependencies": {
+    "nodemon": "^2.0.12"
+  }
+}

@@ -1,0 +1,15 @@
+mode: "debug"
+app_name: "Website"
+key: "1234"
+
+server:
+  port: 7001
+
+database:
+  host: "localhost"
+  name: "jeogacom_mangodb"
+  password: "root"
+  port: "5432"
+  type: "postgres"
+  user: "postgres"
+  sslmode: "disable"
