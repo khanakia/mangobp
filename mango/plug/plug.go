@@ -61,9 +61,9 @@ func MigrateDb(p interface{}) {
 
 	for i := 0; i < v.NumField(); i++ {
 		fmt.Printf("Field: %s\tValue: %v\n", typeOfS.Field(i).Name, v.Field(i).Interface())
-		plugin, ok := v.Field(i).Interface().(IMigrateDb)
+		pkg, ok := v.Field(i).Interface().(IMigrateDb)
 		if ok {
-			plugin.MigrateDb()
+			pkg.MigrateDb()
 		}
 		fmt.Println(ok)
 	}

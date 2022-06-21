@@ -2,8 +2,8 @@ scalar Uint
 
 """Arbitrary object"""
 scalar Any
-scalar UUID
-scalar Uid
+# scalar UUID
+# scalar Uid
 scalar Time
 scalar MyCustomBooleanScalar
 

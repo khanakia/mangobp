@@ -3,33 +3,53 @@ package auth_nats
 import (
 	"fmt"
 
+	"github.com/gin-gonic/gin"
+	"github.com/khanakia/mangobp/mango/cache_nats_client"
+	"github.com/khanakia/mangobp/mango/nats_util"
 	"github.com/khanakia/mangobp/mango/natso"
-	"github.com/khanakia/mangobp/pkg/auth/auth_repo"
+	"github.com/khanakia/mangobp/pkg/auth/auth_domain"
+	"github.com/khanakia/mangobp/pkg/auth/auth_fn"
 	"github.com/nats-io/nats.go"
+	"github.com/spf13/cast"
+	"github.com/ubgo/goutil"
+	"gorm.io/gorm"
 )
+
+const (
+	NATS_AUTH_REGISTER_SUBJECT    = "auth.register"
+	NATS_AUTH_LOGIN_SUBJECT       = "auth.login"
+	NATS_AUTH_FORGOT_PASS_SUBJECT = "auth.forgot_pass"
+	NATS_AUTH_RESET_PASS_SUBJECT  = "auth.reset_pass"
+)
+
+type Config struct {
+	// UserRepo auth_repo.UserRepo
+	Natso           natso.Natso
+	DB              *gorm.DB
+	CacheNatsClient cache_nats_client.CacheNatsClient
+}
 
 type AuthNats struct {
 	Config
-}
-
-type Config struct {
-	UserRepo auth_repo.UserRepo
-	Natso    natso.Natso
-}
-
-type res struct {
-	Code string
 }
 
 func New(config Config) {
 	ec := config.Natso.GetEncodedConn()
 	// c, _ := nats.NewEncodedConn(nc, nats.JSON_ENCODER)
 
+	fmt.Println(ec)
 	ec.Subscribe("auth.ping", PingHandler(ec))
 
 	PingSubscriber(ec)
 
-	AuthRegister(ec, config.UserRepo)
+	RegisterSubs(ec, config)
+	LoginSubs(ec, config)
+	ForgotPassSubs(ec, config)
+	ResetPassSubs(ec, config)
+}
+
+type res struct {
+	Code string
 }
 
 // Usual way to define Subsciber with Handler separately - Pros: Can be used with multiple subscribers loosely coupled
@@ -52,56 +72,59 @@ func PingSubscriber(ec *nats.EncodedConn) {
 	})
 }
 
-type ErrorResp struct {
-	Msg  string `json:"msg,omitempty"`
-	Code string `json:"code,omitempty"`
-}
-
 type UserRequest struct {
-	Email    string  `json:"email"`
-	Name     *string `json:"name"`
-	Password string  `json:"password"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
 }
 
 type LoginResp struct {
 	Token string `json:"token,omitempty"`
 }
-type Resp struct {
-	Data  interface{} `json:"data,omitempty"`
-	Error *ErrorResp  `json:"error,omitempty"`
-}
 
 // nats request auth.register '{"firstName":"derek"}'
-func AuthRegister(ec *nats.EncodedConn, repo auth_repo.UserRepo) {
-	ec.Subscribe("auth.register", func(subj, reply string, msg *UserRequest) {
-		fmt.Println("MSG", msg)
+func RegisterSubs(ec *nats.EncodedConn, config Config) {
+	ec.Subscribe(NATS_AUTH_REGISTER_SUBJECT, func(subj, reply string, msg UserRequest) {
+		fmt.Println("MSG", msg.Name)
+		db := config.DB
+		// // as msg.YourName is pointer so we need to cast it so it do not throw error in case of nil in ParseName()
+		name := cast.ToString(msg.Name)
+		person := goutil.ParseName(name)
 
-		// // as msg.YourName is pointer so we need to cast it so it do not through error in case of nil in ParseName()
-		// name := cast.ToString(msg.Name)
-		// person := goutil.ParseName(name)
+		usern, err := auth_fn.Register(&auth_domain.User{
+			Email:     msg.Email,
+			FirstName: person.FirstName,
+			LastName:  person.LastName,
+			Password:  msg.Password,
+		}, db)
 
-		// _, err := repo.Register(&auth_domain.User{
-		// 	Email:     msg.Email,
-		// 	FirstName: person.FirstName,
-		// 	LastName:  person.LastName,
-		// 	Password:  msg.Password,
-		// })
+		if err != nil {
+			// ec.Publish(reply, &ErrorResp{
+			// 	Code: "400",
+			// 	Msg:  err.Error(),
+			// })
 
-		// if err != nil {
-		// 	ec.Publish(reply, &ErrorResp{
-		// 		Code: "400",
-		// 		Msg:  err.Error(),
-		// 	})
-		// 	return
-		// }
+			ec.Publish(reply, nats_util.CreateRespWithErr(err.Error(), "400", ""))
+			return
+		}
 
-		// lr := Resp{
-		// 	Error: &ErrorResp{
-		// 		Msg: "Test",
-		// 	},
-		// }
+		// YTD SEND EMAIL
 
-		// ec.Publish(reply, lr)
+		token, errToken := auth_fn.CreateToken(*usern, db)
+		if errToken != nil {
+			// ec.Publish(reply, &ErrorResp{
+			// 	Code: "token_error",
+			// 	Msg:  "server error",
+			// })
+			ec.Publish(reply, nats_util.CreateRespWithErr(err.Error(), "token_error", "400"))
+			return
+		}
+
+		lr := &LoginResp{
+			Token: token,
+		}
+
+		ec.Publish(reply, nats_util.CreateRespWithData(lr))
 	})
 }
 
@@ -110,35 +133,64 @@ type UserLoginReq struct {
 	Password string `json:"password"`
 }
 
-func AuthLogin(ec *nats.EncodedConn, repo auth_repo.UserRepo) {
-	ec.Subscribe("auth.login", func(subj, reply string, msg *UserLoginReq) {
-		fmt.Println("MSG", msg)
+func LoginSubs(ec *nats.EncodedConn, config Config) {
+	ec.Subscribe(NATS_AUTH_LOGIN_SUBJECT, func(subj, reply string, msg UserLoginReq) {
 
-		// // as msg.YourName is pointer so we need to cast it so it do not through error in case of nil in ParseName()
-		// name := cast.ToString(msg.Name)
-		// person := goutil.ParseName(name)
+		// fmt.Println("MSG", cast.ToString(msg.UserName))
 
-		// _, err := repo.Register(&auth_domain.User{
-		// 	Email:     msg.Email,
-		// 	FirstName: person.FirstName,
-		// 	LastName:  person.LastName,
-		// 	Password:  msg.Password,
-		// })
+		db := config.DB
 
-		// if err != nil {
-		// 	ec.Publish(reply, &ErrorResp{
-		// 		Code: "400",
-		// 		Msg:  err.Error(),
-		// 	})
-		// 	return
-		// }
-
-		lr := Resp{
-			Error: &ErrorResp{
-				Msg: "Test",
-			},
+		token, err := auth_fn.Login(msg.UserName, msg.Password, db)
+		if err != nil {
+			ec.Publish(reply, nats_util.CreateRespWithErr(err.Error(), "login_error", "400"))
 		}
 
-		ec.Publish(reply, lr)
+		ec.Publish(reply, nats_util.CreateRespWithData(gin.H{
+			"token": token,
+		}))
+	})
+}
+
+func ForgotPassSubs(ec *nats.EncodedConn, config Config) {
+	ec.Subscribe(NATS_AUTH_FORGOT_PASS_SUBJECT, func(subj, reply string, msg UserLoginReq) {
+		fmt.Println("MSG", cast.ToString(msg.UserName))
+		cnc := config.CacheNatsClient
+		// cnc.Put("test", "dfsd", 10000)
+		// cnc.Flush()
+		db := config.DB
+
+		err := auth_fn.ForgotPassword(auth_fn.ForgotPasswordRequest{
+			UserName: msg.UserName,
+		}, cnc, db)
+		if err != nil {
+			ec.Publish(reply, nats_util.CreateRespWithErr(err.Error(), "login_error", "400"))
+		}
+	})
+}
+
+func ResetPassSubs(ec *nats.EncodedConn, config Config) {
+	ec.Subscribe(NATS_AUTH_RESET_PASS_SUBJECT, func(subj, reply string, msg auth_fn.ResetPasswordRequest) {
+
+		cnc := config.CacheNatsClient
+		// cnc.Put("test", "dfsd", 10000)
+		// cnc.Flush()
+		db := config.DB
+
+		user, err := auth_fn.ResetPassword(msg, cnc, db)
+		if err != nil {
+			ec.Publish(reply, nats_util.CreateRespWithErr(err.Error(), "", "400"))
+		}
+
+		token, errToken := auth_fn.CreateToken(user, db)
+		if errToken != nil {
+			ec.Publish(reply, nats_util.CreateRespWithErr(err.Error(), "token_error", "400"))
+			return
+		}
+
+		lr := &LoginResp{
+			Token: token,
+		}
+
+		ec.Publish(reply, nats_util.CreateRespWithData(lr))
 	})
 }

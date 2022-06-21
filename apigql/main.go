@@ -20,8 +20,11 @@ func Boot(plugin wireapp.Plugin) {
 	serverServer.Router.Use(gqlgenfn.GinContextToContextMiddleware())
 
 	resolver := &resolverfn.Resolver{
-		GormDB: plugin.GormDB,
-		Logger: plugin.Logger,
+		GormDB:          plugin.GormDB,
+		Logger:          plugin.Logger,
+		Natso:           plugin.Natso,
+		CacheNatsClient: plugin.CacheNatsClient,
+		LogDbNatsClient: plugin.LogDbNatsClient,
 	}
 	gqlConfig := gql.Config{
 		GormDB:   plugin.GormDB,

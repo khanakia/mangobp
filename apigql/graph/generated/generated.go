@@ -46,29 +46,56 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Country struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
+	}
+
+	LoginResponse struct {
+		Token func(childComplexity int) int
+	}
+
 	MetaOutput struct {
 		Total func(childComplexity int) int
 	}
 
 	Mutation struct {
-		Ping func(childComplexity int) int
+		AuthForgotPassword func(childComplexity int, userName string) int
+		AuthLogin          func(childComplexity int, input model.LoginInput) int
+		AuthRegister       func(childComplexity int, input model.RegisterInput) int
+		AuthResetPassword  func(childComplexity int, token string, password string) int
+		Ping               func(childComplexity int) int
 	}
 
 	Query struct {
-		Ping func(childComplexity int) int
+		GeoCountries func(childComplexity int) int
+		GeoStates    func(childComplexity int, countryID *string, filter *model.FilterInput, limit int, offset int, orderBy []*model.SortOrderInput) int
+		Ping         func(childComplexity int) int
 	}
 
 	SortOrderOutput struct {
 		Key   func(childComplexity int) int
 		Value func(childComplexity int) int
 	}
+
+	State struct {
+		CountryID func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Name      func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
 	Ping(ctx context.Context) (string, error)
+	AuthRegister(ctx context.Context, input model.RegisterInput) (*model.LoginResponse, error)
+	AuthLogin(ctx context.Context, input model.LoginInput) (*model.LoginResponse, error)
+	AuthForgotPassword(ctx context.Context, userName string) (bool, error)
+	AuthResetPassword(ctx context.Context, token string, password string) (*model.LoginResponse, error)
 }
 type QueryResolver interface {
 	Ping(ctx context.Context) (string, error)
+	GeoCountries(ctx context.Context) ([]*model.Country, error)
+	GeoStates(ctx context.Context, countryID *string, filter *model.FilterInput, limit int, offset int, orderBy []*model.SortOrderInput) ([]*model.State, error)
 }
 
 type executableSchema struct {
@@ -86,6 +113,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "Country.id":
+		if e.complexity.Country.ID == nil {
+			break
+		}
+
+		return e.complexity.Country.ID(childComplexity), true
+
+	case "Country.name":
+		if e.complexity.Country.Name == nil {
+			break
+		}
+
+		return e.complexity.Country.Name(childComplexity), true
+
+	case "LoginResponse.token":
+		if e.complexity.LoginResponse.Token == nil {
+			break
+		}
+
+		return e.complexity.LoginResponse.Token(childComplexity), true
+
 	case "MetaOutput.total":
 		if e.complexity.MetaOutput.Total == nil {
 			break
@@ -93,12 +141,79 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MetaOutput.Total(childComplexity), true
 
+	case "Mutation.authForgotPassword":
+		if e.complexity.Mutation.AuthForgotPassword == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_authForgotPassword_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AuthForgotPassword(childComplexity, args["userName"].(string)), true
+
+	case "Mutation.authLogin":
+		if e.complexity.Mutation.AuthLogin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_authLogin_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AuthLogin(childComplexity, args["input"].(model.LoginInput)), true
+
+	case "Mutation.authRegister":
+		if e.complexity.Mutation.AuthRegister == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_authRegister_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AuthRegister(childComplexity, args["input"].(model.RegisterInput)), true
+
+	case "Mutation.authResetPassword":
+		if e.complexity.Mutation.AuthResetPassword == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_authResetPassword_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AuthResetPassword(childComplexity, args["token"].(string), args["password"].(string)), true
+
 	case "Mutation.ping":
 		if e.complexity.Mutation.Ping == nil {
 			break
 		}
 
 		return e.complexity.Mutation.Ping(childComplexity), true
+
+	case "Query.geoCountries":
+		if e.complexity.Query.GeoCountries == nil {
+			break
+		}
+
+		return e.complexity.Query.GeoCountries(childComplexity), true
+
+	case "Query.geoStates":
+		if e.complexity.Query.GeoStates == nil {
+			break
+		}
+
+		args, err := ec.field_Query_geoStates_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GeoStates(childComplexity, args["countryId"].(*string), args["filter"].(*model.FilterInput), args["limit"].(int), args["offset"].(int), args["orderBy"].([]*model.SortOrderInput)), true
 
 	case "Query.ping":
 		if e.complexity.Query.Ping == nil {
@@ -121,6 +236,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SortOrderOutput.Value(childComplexity), true
 
+	case "State.countryId":
+		if e.complexity.State.CountryID == nil {
+			break
+		}
+
+		return e.complexity.State.CountryID(childComplexity), true
+
+	case "State.id":
+		if e.complexity.State.ID == nil {
+			break
+		}
+
+		return e.complexity.State.ID(childComplexity), true
+
+	case "State.name":
+		if e.complexity.State.Name == nil {
+			break
+		}
+
+		return e.complexity.State.Name(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -130,7 +266,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputFilterInput,
+		ec.unmarshalInputLoginInput,
 		ec.unmarshalInputMetaInput,
+		ec.unmarshalInputRegisterInput,
 		ec.unmarshalInputSortOrderInput,
 	)
 	first := true
@@ -192,12 +330,91 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "../schema/auth.graphqls", Input: `input RegisterInput {
+  email: String!
+  yourName: String
+  # lastName: String
+  company: String
+  password: String!
+}
+
+type LoginResponse {
+  token: String!
+}
+
+input LoginInput {
+  userName: String!
+  password: String!
+}
+
+# type User {
+#   id: String!
+#   createdAt: Time!
+#   firstName: String
+#   lastName: String
+#   company: String
+#   email: String!
+#   status: Boolean!
+# }
+
+# type UserEdge {
+#   node: User
+# }
+
+# type PaginatedUserResponse {
+#   edges: [UserEdge]
+#   totalCount: Int!
+# }
+
+# type UserView {
+#   id: String!
+#   createdAt: Time!
+#   firstName: String
+#   lastName: String
+#   company: String
+# 	email: String!
+#   status: Boolean!
+# }
+
+# input UserInput {
+# 	firstName: String
+#   lastName: String
+#   company: String
+# 	email: String!
+#   status: Boolean!
+# }
+
+# type MeInfo {
+#   id: String!
+#   createdAt: Time!
+#   firstName: String
+#   lastName: String
+#   company: String
+# 	email: String!
+#   status: Boolean!
+# }
+
+# extend type Query {
+#   users(offset: Int! = 0, limit: Int! = 10, orderBy: [SortOrderInput!] = [], filters: [FilterInput!]): PaginatedUserResponse
+#   user(id: String!): UserView
+#   me: MeInfo
+# }
+
+extend type Mutation {
+  authRegister(input: RegisterInput!): LoginResponse! @hasCaptcha()
+  authLogin(input: LoginInput!): LoginResponse! @hasCaptcha()
+  authForgotPassword(userName: String!): Boolean! @hasCaptcha()
+  authResetPassword(token: String!, password: String!): LoginResponse! @hasCaptcha()
+  # authCreateToken(id: String, shopUrl: String): LoginResponse!
+  # userCreate(input: UserInput!): UserView!
+  # userUpdate(id: String!,input: UserInput!): Boolean!
+}`, BuiltIn: false},
 	{Name: "../schema/core.graphqls", Input: `scalar Uint
 
 """Arbitrary object"""
 scalar Any
-scalar UUID
-scalar Uid
+# scalar UUID
+# scalar Uid
 scalar Time
 scalar MyCustomBooleanScalar
 
@@ -256,6 +473,21 @@ type MetaOutput {
   # offset: Int
   total: Int
 }`, BuiltIn: false},
+	{Name: "../schema/geo.graphqls", Input: `type Country {
+  id: String!
+	name: String!
+}
+
+type State {
+  id: String!
+	name: String!
+  countryId: String!
+}
+
+extend type Query {
+  geoCountries: [Country!]
+  geoStates(countryId: String, filter: FilterInput, limit: Int! = 10, offset: Int! = 0, orderBy: [SortOrderInput!] = []): [State!]
+}`, BuiltIn: false},
 	{Name: "../schema/schema.graphqls", Input: `scalar UInt
 
 type Query {
@@ -287,6 +519,75 @@ func (ec *executionContext) dir_inherits_args(ctx context.Context, rawArgs map[s
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_authForgotPassword_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userName"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userName"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userName"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_authLogin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.LoginInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNLoginInput2githubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐLoginInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_authRegister_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.RegisterInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNRegisterInput2githubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐRegisterInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_authResetPassword_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["token"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["token"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["password"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["password"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -299,6 +600,57 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_geoStates_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["countryId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("countryId"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["countryId"] = arg0
+	var arg1 *model.FilterInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg1, err = ec.unmarshalOFilterInput2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐFilterInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg2
+	var arg3 int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	var arg4 []*model.SortOrderInput
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg4, err = ec.unmarshalOSortOrderInput2ᚕᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐSortOrderInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg4
 	return args, nil
 }
 
@@ -339,6 +691,138 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Country_id(ctx context.Context, field graphql.CollectedField, obj *model.Country) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Country_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Country_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Country",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Country_name(ctx context.Context, field graphql.CollectedField, obj *model.Country) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Country_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Country_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Country",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LoginResponse_token(ctx context.Context, field graphql.CollectedField, obj *model.LoginResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LoginResponse_token(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Token, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LoginResponse_token(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LoginResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _MetaOutput_total(ctx context.Context, field graphql.CollectedField, obj *model.MetaOutput) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_MetaOutput_total(ctx, field)
@@ -425,6 +909,318 @@ func (ec *executionContext) fieldContext_Mutation_ping(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_authRegister(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_authRegister(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AuthRegister(rctx, fc.Args["input"].(model.RegisterInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasCaptcha == nil {
+				return nil, errors.New("directive hasCaptcha is not implemented")
+			}
+			return ec.directives.HasCaptcha(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.LoginResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/khanakia/mangobp/apigql/graph/model.LoginResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.LoginResponse)
+	fc.Result = res
+	return ec.marshalNLoginResponse2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐLoginResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_authRegister(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "token":
+				return ec.fieldContext_LoginResponse_token(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LoginResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_authRegister_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_authLogin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_authLogin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AuthLogin(rctx, fc.Args["input"].(model.LoginInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasCaptcha == nil {
+				return nil, errors.New("directive hasCaptcha is not implemented")
+			}
+			return ec.directives.HasCaptcha(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.LoginResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/khanakia/mangobp/apigql/graph/model.LoginResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.LoginResponse)
+	fc.Result = res
+	return ec.marshalNLoginResponse2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐLoginResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_authLogin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "token":
+				return ec.fieldContext_LoginResponse_token(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LoginResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_authLogin_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_authForgotPassword(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_authForgotPassword(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AuthForgotPassword(rctx, fc.Args["userName"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasCaptcha == nil {
+				return nil, errors.New("directive hasCaptcha is not implemented")
+			}
+			return ec.directives.HasCaptcha(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_authForgotPassword(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_authForgotPassword_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_authResetPassword(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_authResetPassword(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AuthResetPassword(rctx, fc.Args["token"].(string), fc.Args["password"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasCaptcha == nil {
+				return nil, errors.New("directive hasCaptcha is not implemented")
+			}
+			return ec.directives.HasCaptcha(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.LoginResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/khanakia/mangobp/apigql/graph/model.LoginResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.LoginResponse)
+	fc.Result = res
+	return ec.marshalNLoginResponse2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐLoginResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_authResetPassword(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "token":
+				return ec.fieldContext_LoginResponse_token(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LoginResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_authResetPassword_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_ping(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_ping(ctx, field)
 	if err != nil {
@@ -465,6 +1261,113 @@ func (ec *executionContext) fieldContext_Query_ping(ctx context.Context, field g
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_geoCountries(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_geoCountries(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GeoCountries(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Country)
+	fc.Result = res
+	return ec.marshalOCountry2ᚕᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐCountryᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_geoCountries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Country_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Country_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Country", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_geoStates(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_geoStates(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GeoStates(rctx, fc.Args["countryId"].(*string), fc.Args["filter"].(*model.FilterInput), fc.Args["limit"].(int), fc.Args["offset"].(int), fc.Args["orderBy"].([]*model.SortOrderInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.State)
+	fc.Result = res
+	return ec.marshalOState2ᚕᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐStateᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_geoStates(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_State_id(ctx, field)
+			case "name":
+				return ec.fieldContext_State_name(ctx, field)
+			case "countryId":
+				return ec.fieldContext_State_countryId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type State", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_geoStates_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -664,7 +1567,7 @@ func (ec *executionContext) _SortOrderOutput_value(ctx context.Context, field gr
 	}
 	res := resTmp.(*model.SortDirection)
 	fc.Result = res
-	return ec.marshalOSortDirection2ᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐSortDirection(ctx, field.Selections, res)
+	return ec.marshalOSortDirection2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐSortDirection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SortOrderOutput_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -675,6 +1578,138 @@ func (ec *executionContext) fieldContext_SortOrderOutput_value(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type SortDirection does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _State_id(ctx context.Context, field graphql.CollectedField, obj *model.State) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_State_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_State_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "State",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _State_name(ctx context.Context, field graphql.CollectedField, obj *model.State) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_State_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_State_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "State",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _State_countryId(ctx context.Context, field graphql.CollectedField, obj *model.State) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_State_countryId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CountryID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_State_countryId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "State",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2476,7 +3511,7 @@ func (ec *executionContext) unmarshalInputFilterInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("condition"))
-			it.Condition, err = ec.unmarshalOFilterCondition2ᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐFilterCondition(ctx, v)
+			it.Condition, err = ec.unmarshalOFilterCondition2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐFilterCondition(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2500,7 +3535,7 @@ func (ec *executionContext) unmarshalInputFilterInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operator"))
-			it.Operator, err = ec.unmarshalOFilterOperator2ᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐFilterOperator(ctx, v)
+			it.Operator, err = ec.unmarshalOFilterOperator2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐFilterOperator(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2509,6 +3544,37 @@ func (ec *executionContext) unmarshalInputFilterInput(ctx context.Context, obj i
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			it.Value, err = ec.unmarshalOAny2interface(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputLoginInput(ctx context.Context, obj interface{}) (model.LoginInput, error) {
+	var it model.LoginInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "userName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userName"))
+			it.UserName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2546,7 +3612,7 @@ func (ec *executionContext) unmarshalInputMetaInput(ctx context.Context, obj int
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
-			it.OrderBy, err = ec.unmarshalOSortOrderInput2ᚕᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐSortOrderInputᚄ(ctx, v)
+			it.OrderBy, err = ec.unmarshalOSortOrderInput2ᚕᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐSortOrderInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2555,6 +3621,53 @@ func (ec *executionContext) unmarshalInputMetaInput(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
 			it.Offset, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRegisterInput(ctx context.Context, obj interface{}) (model.RegisterInput, error) {
+	var it model.RegisterInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "yourName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("yourName"))
+			it.YourName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "company":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("company"))
+			it.Company, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2589,7 +3702,7 @@ func (ec *executionContext) unmarshalInputSortOrderInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			it.Value, err = ec.unmarshalOSortDirection2ᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐSortDirection(ctx, v)
+			it.Value, err = ec.unmarshalOSortDirection2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐSortDirection(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2606,6 +3719,69 @@ func (ec *executionContext) unmarshalInputSortOrderInput(ctx context.Context, ob
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var countryImplementors = []string{"Country"}
+
+func (ec *executionContext) _Country(ctx context.Context, sel ast.SelectionSet, obj *model.Country) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, countryImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Country")
+		case "id":
+
+			out.Values[i] = ec._Country_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._Country_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var loginResponseImplementors = []string{"LoginResponse"}
+
+func (ec *executionContext) _LoginResponse(ctx context.Context, sel ast.SelectionSet, obj *model.LoginResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, loginResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LoginResponse")
+		case "token":
+
+			out.Values[i] = ec._LoginResponse_token(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
 
 var metaOutputImplementors = []string{"MetaOutput"}
 
@@ -2655,6 +3831,42 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_ping(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "authRegister":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_authRegister(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "authLogin":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_authLogin(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "authForgotPassword":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_authForgotPassword(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "authResetPassword":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_authResetPassword(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -2713,6 +3925,46 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "geoCountries":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_geoCountries(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "geoStates":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_geoStates(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -2754,6 +4006,48 @@ func (ec *executionContext) _SortOrderOutput(ctx context.Context, sel ast.Select
 
 			out.Values[i] = ec._SortOrderOutput_value(ctx, field, obj)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var stateImplementors = []string{"State"}
+
+func (ec *executionContext) _State(ctx context.Context, sel ast.SelectionSet, obj *model.State) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, stateImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("State")
+		case "id":
+
+			out.Values[i] = ec._State_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._State_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "countryId":
+
+			out.Values[i] = ec._State_countryId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3098,6 +4392,16 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNCountry2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐCountry(ctx context.Context, sel ast.SelectionSet, v *model.Country) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Country(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3113,9 +4417,43 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNSortOrderInput2ᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐSortOrderInput(ctx context.Context, v interface{}) (*model.SortOrderInput, error) {
+func (ec *executionContext) unmarshalNLoginInput2githubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐLoginInput(ctx context.Context, v interface{}) (model.LoginInput, error) {
+	res, err := ec.unmarshalInputLoginInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLoginResponse2githubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐLoginResponse(ctx context.Context, sel ast.SelectionSet, v model.LoginResponse) graphql.Marshaler {
+	return ec._LoginResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLoginResponse2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐLoginResponse(ctx context.Context, sel ast.SelectionSet, v *model.LoginResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LoginResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐRegisterInput(ctx context.Context, v interface{}) (model.RegisterInput, error) {
+	res, err := ec.unmarshalInputRegisterInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNSortOrderInput2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐSortOrderInput(ctx context.Context, v interface{}) (*model.SortOrderInput, error) {
 	res, err := ec.unmarshalInputSortOrderInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNState2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐState(ctx context.Context, sel ast.SelectionSet, v *model.State) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._State(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -3428,7 +4766,54 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) unmarshalOFilterCondition2ᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐFilterCondition(ctx context.Context, v interface{}) (*model.FilterCondition, error) {
+func (ec *executionContext) marshalOCountry2ᚕᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐCountryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Country) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCountry2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐCountry(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOFilterCondition2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐFilterCondition(ctx context.Context, v interface{}) (*model.FilterCondition, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -3437,14 +4822,22 @@ func (ec *executionContext) unmarshalOFilterCondition2ᚖgithubᚗcomᚋkhanakia
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOFilterCondition2ᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐFilterCondition(ctx context.Context, sel ast.SelectionSet, v *model.FilterCondition) graphql.Marshaler {
+func (ec *executionContext) marshalOFilterCondition2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐFilterCondition(ctx context.Context, sel ast.SelectionSet, v *model.FilterCondition) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOFilterOperator2ᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐFilterOperator(ctx context.Context, v interface{}) (*model.FilterOperator, error) {
+func (ec *executionContext) unmarshalOFilterInput2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐFilterInput(ctx context.Context, v interface{}) (*model.FilterInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFilterInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOFilterOperator2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐFilterOperator(ctx context.Context, v interface{}) (*model.FilterOperator, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -3453,7 +4846,7 @@ func (ec *executionContext) unmarshalOFilterOperator2ᚖgithubᚗcomᚋkhanakia�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOFilterOperator2ᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐFilterOperator(ctx context.Context, sel ast.SelectionSet, v *model.FilterOperator) graphql.Marshaler {
+func (ec *executionContext) marshalOFilterOperator2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐFilterOperator(ctx context.Context, sel ast.SelectionSet, v *model.FilterOperator) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -3476,7 +4869,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) unmarshalOSortDirection2ᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐSortDirection(ctx context.Context, v interface{}) (*model.SortDirection, error) {
+func (ec *executionContext) unmarshalOSortDirection2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐSortDirection(ctx context.Context, v interface{}) (*model.SortDirection, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -3485,14 +4878,14 @@ func (ec *executionContext) unmarshalOSortDirection2ᚖgithubᚗcomᚋkhanakia�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOSortDirection2ᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐSortDirection(ctx context.Context, sel ast.SelectionSet, v *model.SortDirection) graphql.Marshaler {
+func (ec *executionContext) marshalOSortDirection2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐSortDirection(ctx context.Context, sel ast.SelectionSet, v *model.SortDirection) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOSortOrderInput2ᚕᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐSortOrderInputᚄ(ctx context.Context, v interface{}) ([]*model.SortOrderInput, error) {
+func (ec *executionContext) unmarshalOSortOrderInput2ᚕᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐSortOrderInputᚄ(ctx context.Context, v interface{}) ([]*model.SortOrderInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -3504,12 +4897,59 @@ func (ec *executionContext) unmarshalOSortOrderInput2ᚕᚖgithubᚗcomᚋkhanak
 	res := make([]*model.SortOrderInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNSortOrderInput2ᚖgithubᚗcomᚋkhanakiaᚋmangocmsᚋapigqlᚋgraphᚋmodelᚐSortOrderInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNSortOrderInput2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐSortOrderInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) marshalOState2ᚕᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐStateᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.State) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNState2ᚖgithubᚗcomᚋkhanakiaᚋmangobpᚋapigqlᚋgraphᚋmodelᚐState(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

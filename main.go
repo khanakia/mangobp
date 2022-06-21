@@ -17,6 +17,10 @@ func main() {
 		Short: "starts the HTTP server",
 		Run: func(cmd *cobra.Command, args []string) {
 			apigql.Boot(plugin)
+
+			//// Only wait if we do not start the http server
+			// plugin.Natso.Wait()
+
 		},
 	}
 

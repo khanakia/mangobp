@@ -1,0 +1,79 @@
+input RegisterInput {
+  email: String!
+  yourName: String
+  # lastName: String
+  company: String
+  password: String!
+}
+
+type LoginResponse {
+  token: String!
+}
+
+input LoginInput {
+  userName: String!
+  password: String!
+}
+
+# type User {
+#   id: String!
+#   createdAt: Time!
+#   firstName: String
+#   lastName: String
+#   company: String
+#   email: String!
+#   status: Boolean!
+# }
+
+# type UserEdge {
+#   node: User
+# }
+
+# type PaginatedUserResponse {
+#   edges: [UserEdge]
+#   totalCount: Int!
+# }
+
+# type UserView {
+#   id: String!
+#   createdAt: Time!
+#   firstName: String
+#   lastName: String
+#   company: String
+# 	email: String!
+#   status: Boolean!
+# }
+
+# input UserInput {
+# 	firstName: String
+#   lastName: String
+#   company: String
+# 	email: String!
+#   status: Boolean!
+# }
+
+# type MeInfo {
+#   id: String!
+#   createdAt: Time!
+#   firstName: String
+#   lastName: String
+#   company: String
+# 	email: String!
+#   status: Boolean!
+# }
+
+# extend type Query {
+#   users(offset: Int! = 0, limit: Int! = 10, orderBy: [SortOrderInput!] = [], filters: [FilterInput!]): PaginatedUserResponse
+#   user(id: String!): UserView
+#   me: MeInfo
+# }
+
+extend type Mutation {
+  authRegister(input: RegisterInput!): LoginResponse! @hasCaptcha()
+  authLogin(input: LoginInput!): LoginResponse! @hasCaptcha()
+  authForgotPassword(userName: String!): Boolean! @hasCaptcha()
+  authResetPassword(token: String!, password: String!): LoginResponse! @hasCaptcha()
+  # authCreateToken(id: String, shopUrl: String): LoginResponse!
+  # userCreate(input: UserInput!): UserView!
+  # userUpdate(id: String!,input: UserInput!): Boolean!
+}

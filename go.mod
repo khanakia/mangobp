@@ -4,17 +4,21 @@ go 1.18
 
 require (
 	github.com/99designs/gqlgen v0.17.10
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/color v1.13.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
+	github.com/goccy/go-json v0.9.7
 	github.com/google/wire v0.5.0
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/manifoldco/promptui v0.9.0
 	github.com/matoous/go-nanoid/v2 v2.0.0
 	github.com/nats-io/nats.go v1.16.0
 	github.com/pkg/errors v0.9.1
+	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.12.0
+	github.com/ubgo/gofm/cache v0.0.4
 	github.com/ubgo/gofm/ginserver v0.0.6
 	github.com/ubgo/gofm/gormdb v0.0.6
 	github.com/ubgo/gofm/gqlgin v0.0.8
@@ -24,6 +28,7 @@ require (
 	github.com/ubgo/gqlmodel v0.0.3
 	github.com/vektah/gqlparser/v2 v2.4.5
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
+	gorm.io/datatypes v1.0.6
 	gorm.io/driver/postgres v1.3.7
 	gorm.io/gorm v1.23.6
 )
@@ -38,7 +43,7 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.11.0 // indirect
-	github.com/goccy/go-json v0.9.7 // indirect
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/google/subcommands v1.0.1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
@@ -56,7 +61,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/lib/pq v1.10.5 // indirect
+	github.com/lib/pq v1.10.6 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/matryer/moq v0.2.7 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
@@ -72,11 +77,10 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
-	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.0 // indirect
-	github.com/ubgo/gofm/db v0.0.3 // indirect
+	github.com/ubgo/gofm/db v0.0.5 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/urfave/cli/v2 v2.8.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
@@ -94,4 +98,5 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gorm.io/driver/mysql v1.3.2 // indirect
 )

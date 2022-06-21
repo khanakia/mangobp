@@ -1,0 +1,9 @@
+{
+  "gopls": {
+    "buildFlags": ["-tags=wireinject"]
+  },
+  "search.exclude": {
+    "**/dist": true,
+    "**/assets/lib": true,
+  }
+}

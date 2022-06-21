@@ -1,6 +1,9 @@
 package auth_domain
 
-import "github.com/khanakia/mangobp/mango/util"
+import (
+	"github.com/dgrijalva/jwt-go"
+	"github.com/khanakia/mangobp/mango/util"
+)
 
 const (
 	RoleSaID     = 1
@@ -20,4 +23,14 @@ type User struct {
 	Secret           string `json:"-" gorm:"type:varchar(50)"` // Will be used for Login or Other function this will be internal and must never shared to frotend
 	WelcomeEmailSent bool   `json:"welcomeEmailSent" gorm:"type:boolean;default:false"`
 	// ChgbeeCustomerID string `json:"-" gorm:"type:varchar(50)"`
+}
+
+type Claims struct {
+	Sub   string `json:"sub"`
+	Email string `json:"email"`
+	// Shop    string    `json:"shop"`
+	Name    string `json:"name"`
+	Company string `json:"company"`
+	// UID   string    `json:"uid"`
+	jwt.StandardClaims
 }

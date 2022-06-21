@@ -8,12 +8,26 @@ import (
 	"strconv"
 )
 
+type Country struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type FilterInput struct {
 	Condition *FilterCondition `json:"condition"`
 	Field     string           `json:"field"`
 	Type      *string          `json:"type"`
 	Operator  *FilterOperator  `json:"operator"`
 	Value     interface{}      `json:"value"`
+}
+
+type LoginInput struct {
+	UserName string `json:"userName"`
+	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	Token string `json:"token"`
 }
 
 type MetaInput struct {
@@ -26,6 +40,13 @@ type MetaOutput struct {
 	Total *int `json:"total"`
 }
 
+type RegisterInput struct {
+	Email    string  `json:"email"`
+	YourName *string `json:"yourName"`
+	Company  *string `json:"company"`
+	Password string  `json:"password"`
+}
+
 type SortOrderInput struct {
 	Key   string         `json:"key"`
 	Value *SortDirection `json:"value"`
@@ -34,6 +55,12 @@ type SortOrderInput struct {
 type SortOrderOutput struct {
 	Key   *string        `json:"key"`
 	Value *SortDirection `json:"value"`
+}
+
+type State struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	CountryID string `json:"countryId"`
 }
 
 // The basic FilterCondition

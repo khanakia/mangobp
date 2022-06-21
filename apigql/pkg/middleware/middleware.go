@@ -1,12 +1,14 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/khanakia/mangobp/mango/util"
 	"github.com/spf13/viper"
 	"github.com/ubgo/goutil"
+	"github.com/ubgo/gqlgenfn"
 )
 
 // Block the host by ip address
@@ -54,4 +56,35 @@ func CORSMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func GetClientIP(ctx context.Context) string {
+	gc, err := gqlgenfn.GinContextFromContext(ctx)
+	if err != nil {
+		return ""
+	}
+
+	userIP := GetUserIP(gc.Writer, gc.Request)
+	return userIP
+}
+
+// Get the IP address of the server's connected user.
+func GetUserIP(httpWriter http.ResponseWriter, httpServer *http.Request) string {
+	var userIP string
+	if len(httpServer.Header.Get("CF-Connecting-IP")) > 1 {
+		userIP = httpServer.Header.Get("CF-Connecting-IP")
+	} else if len(httpServer.Header.Get("X-Forwarded-For")) > 1 {
+		userIP = httpServer.Header.Get("X-Forwarded-For")
+	} else if len(httpServer.Header.Get("X-Real-IP")) > 1 {
+		userIP = httpServer.Header.Get("X-Real-IP")
+	} else {
+		userIP = httpServer.RemoteAddr
+		// if strings.Contains(userIP, ":") {
+		// 	fmt.Println(net.ParseIP(strings.Split(userIP, ":")[0]))
+		// } else {
+		// 	fmt.Println(net.ParseIP(userIP))
+		// }
+	}
+
+	return userIP
 }

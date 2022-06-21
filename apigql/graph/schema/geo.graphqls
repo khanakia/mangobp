@@ -1,0 +1,15 @@
+type Country {
+  id: String!
+	name: String!
+}
+
+type State {
+  id: String!
+	name: String!
+  countryId: String!
+}
+
+extend type Query {
+  geoCountries: [Country!]
+  geoStates(countryId: String, filter: FilterInput, limit: Int! = 10, offset: Int! = 0, orderBy: [SortOrderInput!] = []): [State!]
+}
