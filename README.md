@@ -38,7 +38,7 @@ nats request foo 'test'
 
 
 ## Strucutre
-`services` - this directory will contain the modules which can only be used via nats only. al the services will have the possibilty to move into separate microservices out of monolithing code if needed at some point.
+`services` - this directory will contain the modules which can only be used via nats only. all the services will have the possibilty to move into separate microservices out of monolithing code if needed at some point.
 * No service can import other service directly.
 * One service should communicate with other services using NATS only
 * Apigql should call services using NATS only.

@@ -7,7 +7,6 @@ import (
 	"github.com/khanakia/mangobp/mango/cli"
 	"github.com/khanakia/mangobp/mango/gormdb"
 	"github.com/khanakia/mangobp/mango/natso"
-	"github.com/khanakia/mangobp/pkg/cache_natsapi"
 	"github.com/spf13/cobra"
 	"github.com/ubgo/gofm/cache"
 )
@@ -23,14 +22,14 @@ type Config struct {
 	Cli    cli.Cli
 	GormDB gormdb.GormDB
 	Natso  natso.Natso
-	Cache  cache.Cache
+	Cache  cache.Store
 }
 
 func New(config Config) Dapp {
-	cache_natsapi.New(cache_natsapi.Config{
-		Natso: config.Natso,
-		Cache: config.Cache,
-	})
+	// cache_natsapi.New(cache_natsapi.Config{
+	// 	Natso: config.Natso,
+	// 	Cache: config.Cache,
+	// })
 
 	AddCommands(config)
 	return Dapp{}

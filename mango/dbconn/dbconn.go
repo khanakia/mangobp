@@ -17,7 +17,7 @@ type Config struct {
 	ConfigMgr interfaces.IConfig
 }
 
-func New(config1 Config) DbConn {
+func New(config1 Config) *DbConn {
 	username := config1.ConfigMgr.GetString("database.user")
 	password := config1.ConfigMgr.GetString("database.password")
 	databaseName := config1.ConfigMgr.GetString("database.name")
@@ -42,7 +42,7 @@ func New(config1 Config) DbConn {
 	}
 	fmt.Println("Successfully connected!")
 
-	return DbConn{
+	return &DbConn{
 		SqlDb: db,
 	}
 }

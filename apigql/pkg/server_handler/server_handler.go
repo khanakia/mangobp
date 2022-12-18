@@ -5,7 +5,6 @@ import (
 	"github.com/khanakia/mangobp/mango/gormdb"
 	"github.com/ubgo/gofm/ginserver"
 
-	"github.com/ubgo/gofm/logger"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +12,7 @@ var DB *gorm.DB
 
 type Config struct {
 	GormDB gormdb.GormDB
-	Logger logger.Logger
+	// Logger logger.Logger
 	Server ginserver.Server
 }
 

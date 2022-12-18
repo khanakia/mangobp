@@ -21,6 +21,10 @@ func (pkg ConfigMgr) Version() string {
 	return "0.01"
 }
 
+func (pkg ConfigMgr) Say(name string) {
+	fmt.Println("Hello " + name)
+}
+
 func New(config Config) *ConfigMgr {
 	if len(config.Name) == 0 {
 		config.Name = "default"

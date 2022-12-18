@@ -7,7 +7,7 @@
 package wireapp
 
 import (
-	"github.com/khanakia/mangobp/mango/cache_nats_client"
+	"github.com/khanakia/mangobp/mango/cache_nats"
 	"github.com/khanakia/mangobp/mango/cacherdbms"
 	"github.com/khanakia/mangobp/mango/cli"
 	"github.com/khanakia/mangobp/mango/configmgr"
@@ -15,12 +15,11 @@ import (
 	"github.com/khanakia/mangobp/mango/geo"
 	"github.com/khanakia/mangobp/mango/gormdb"
 	"github.com/khanakia/mangobp/mango/logdb"
-	"github.com/khanakia/mangobp/mango/logdb/logdb_nats_client"
 	"github.com/khanakia/mangobp/mango/natso"
 	"github.com/khanakia/mangobp/mango/xmail/xmail_app"
 	"github.com/khanakia/mangobp/pkg/auth/auth_app"
+	"github.com/khanakia/mangobp/pkg/cache_natsapi"
 	"github.com/khanakia/mangobp/pkg/dapp"
-	"github.com/ubgo/gofm/cache"
 	"github.com/ubgo/gofm/logger"
 	"gorm.io/gorm"
 )
@@ -47,39 +46,27 @@ func Init() Plugin {
 		DB: db,
 	}
 	rdbms := cacherdbms.New(cacherdbmsConfig)
-	cacheConfig := cache.Config{
-		Store: rdbms,
-	}
-	cacheCache := cache.New(cacheConfig)
-	cache_nats_clientConfig := cache_nats_client.Config{
+	cache_natsConfig := cache_nats.Config{
 		Natso: natsoNatso,
 	}
-	cacheNatsClient := cache_nats_client.New(cache_nats_clientConfig)
+	cacheNats := cache_nats.New(cache_natsConfig)
 	logdbConfig := logdb.Config{
-		Cli:             cliCli,
-		GormDB:          gormDB,
-		Natso:           natsoNatso,
-		CacheNatsClient: cacheNatsClient,
+		Cli:    cliCli,
+		GormDB: gormDB,
+		Natso:  natsoNatso,
 	}
 	logDb := logdb.New(logdbConfig)
-	logdb_nats_clientConfig := logdb_nats_client.Config{
-		Natso: natsoNatso,
-	}
-	logDbNatsClient := logdb_nats_client.New(logdb_nats_clientConfig)
 	xmail_appConfig := xmail_app.Config{
-		Cli:             cliCli,
-		GormDB:          gormDB,
-		Natso:           natsoNatso,
-		CacheNatsClient: cacheNatsClient,
-		LogDbNatsClient: logDbNatsClient,
+		Cli:    cliCli,
+		GormDB: gormDB,
+		Natso:  natsoNatso,
 	}
 	xmail := xmail_app.New(xmail_appConfig)
 	auth_appConfig := auth_app.Config{
-		Cli:             cliCli,
-		GormDB:          gormDB,
-		Natso:           natsoNatso,
-		CacheNatsClient: cacheNatsClient,
-		LogDbNatsClient: logDbNatsClient,
+		Cli:    cliCli,
+		GormDB: gormDB,
+		Natso:  natsoNatso,
+		Cache:  cacheNats,
 	}
 	auth := auth_app.New(auth_appConfig)
 	geoConfig := geo.Config{
@@ -91,32 +78,37 @@ func Init() Plugin {
 		Cli:    cliCli,
 		GormDB: gormDB,
 		Natso:  natsoNatso,
-		Cache:  cacheCache,
+		Cache:  cacheNats,
 	}
 	dappDapp := dapp.New(dappConfig)
+	cache_natsapiConfig := cache_natsapi.Config{
+		Natso: natsoNatso,
+		Cache: cacheNats,
+	}
+	cacheNatsApi := cache_natsapi.New(cache_natsapiConfig)
 	plugin := Plugin{
-		ConfigMgr:       configMgr,
-		Cli:             cliCli,
-		Logger:          loggerLogger,
-		DbConn:          dbConn,
-		GormDB:          gormDB,
-		Natso:           natsoNatso,
-		CacheRdbms:      rdbms,
-		Cache:           cacheCache,
-		CacheNatsClient: cacheNatsClient,
-		LogDb:           logDb,
-		LogDbNatsClient: logDbNatsClient,
-		Xmail:           xmail,
-		Auth:            auth,
-		Geo:             geoGeo,
-		Dapp:            dappDapp,
+		ConfigMgr:    configMgr,
+		Cli:          cliCli,
+		Logger:       loggerLogger,
+		DbConn:       dbConn,
+		GormDB:       gormDB,
+		Natso:        natsoNatso,
+		CacheRdbms:   rdbms,
+		Cache:        cacheNats,
+		LogDb:        logDb,
+		Xmail:        xmail,
+		Auth:         auth,
+		Geo:          geoGeo,
+		Dapp:         dappDapp,
+		CacheNats:    cacheNats,
+		CacheNatsApi: cacheNatsApi,
 	}
 	return plugin
 }
 
 // wireapp.go:
 
-func NewGormConfig(dbConn dbconn.DbConn) gormdb.Config {
+func NewGormConfig(dbConn *dbconn.DbConn) gormdb.Config {
 	return gormdb.Config{
 		DB: dbConn.SqlDb,
 	}

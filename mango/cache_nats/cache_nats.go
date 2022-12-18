@@ -1,4 +1,4 @@
-package cache_nats_client
+package cache_nats
 
 import (
 	"time"
@@ -21,18 +21,18 @@ type Config struct {
 	Natso natso.Natso
 }
 
-type CacheNatsClient struct {
+type CacheNats struct {
 	Config
 	ec *nats.EncodedConn
 }
 
-func (pkg CacheNatsClient) Version() string {
+func (pkg CacheNats) Version() string {
 	return "0.01"
 }
 
-func New(config Config) CacheNatsClient {
-	pkg := CacheNatsClient{Config: config, ec: config.Natso.GetEncodedConn()}
-	return pkg
+func New(config Config) *CacheNats {
+	pkg := CacheNats{Config: config, ec: config.Natso.GetEncodedConn()}
+	return &pkg
 }
 
 type CachePutReq struct {
@@ -42,7 +42,7 @@ type CachePutReq struct {
 }
 
 // ttl - in seconds
-func (a CacheNatsClient) Put(key string, val interface{}, ttl int) (bool, error) {
+func (a CacheNats) Put(key string, val interface{}, ttl int) (bool, error) {
 	err := a.ec.Publish(NATS_CACHE_PUT, CachePutReq{
 		Key:   key,
 		Value: val,
@@ -58,7 +58,7 @@ type CacheGetReq struct {
 	Key string `json:"key"`
 }
 
-func (a CacheNatsClient) Get(key string) interface{} {
+func (a CacheNats) Get(key string) interface{} {
 	var response nats_util.Resp
 	err := a.ec.Request(NATS_CACHE_GET, CacheGetReq{Key: key}, &response, 10*time.Millisecond)
 	if err != nil {
@@ -67,12 +67,12 @@ func (a CacheNatsClient) Get(key string) interface{} {
 	return response.Data
 }
 
-func (a CacheNatsClient) Del(key string) {
+func (a CacheNats) Del(key string) {
 	a.ec.Publish(NATS_CACHE_DEL, CacheGetReq{
 		Key: key,
 	})
 }
 
-func (a CacheNatsClient) Flush() {
+func (a CacheNats) Flush() {
 	a.ec.Publish(NATS_CACHE_FLUSH, "{}")
 }

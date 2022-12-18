@@ -4,15 +4,14 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/khanakia/mangobp/mango/cache_nats_client"
 	"github.com/khanakia/mangobp/mango/cli"
 	"github.com/khanakia/mangobp/mango/gormdb"
-	"github.com/khanakia/mangobp/mango/logdb/logdb_nats_client"
 	"github.com/khanakia/mangobp/mango/natso"
 	"github.com/khanakia/mangobp/pkg/auth/auth_domain"
 	"github.com/khanakia/mangobp/pkg/auth/auth_nats"
 	"github.com/khanakia/mangobp/pkg/auth/auth_repo"
 	"github.com/spf13/cobra"
+	"github.com/ubgo/gofm/cache"
 )
 
 type Auth struct {
@@ -34,11 +33,10 @@ func (pkg Auth) MigrateDb() {
 }
 
 type Config struct {
-	Cli             cli.Cli
-	GormDB          gormdb.GormDB
-	Natso           natso.Natso
-	CacheNatsClient cache_nats_client.CacheNatsClient
-	LogDbNatsClient logdb_nats_client.LogDbNatsClient
+	Cli    cli.Cli
+	GormDB gormdb.GormDB
+	Natso  natso.Natso
+	Cache  cache.Store
 }
 
 func New(config Config) Auth {
@@ -55,9 +53,9 @@ func New(config Config) Auth {
 
 	auth_nats.New(auth_nats.Config{
 		// UserRepo: pkg.UserRepo,
-		Natso:           config.Natso,
-		DB:              config.GormDB.DB,
-		CacheNatsClient: config.CacheNatsClient,
+		Natso: config.Natso,
+		DB:    config.GormDB.DB,
+		Cache: config.Cache,
 	})
 	return pkg
 }

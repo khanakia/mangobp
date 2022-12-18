@@ -1,7 +1,6 @@
 package logdb_nats
 
 import (
-	"github.com/khanakia/mangobp/mango/cache_nats_client"
 	"github.com/khanakia/mangobp/mango/logdb/logdb_domain"
 	"github.com/khanakia/mangobp/mango/logdb/logdb_fn"
 	"github.com/khanakia/mangobp/mango/natso"
@@ -10,9 +9,8 @@ import (
 )
 
 type Config struct {
-	Natso           natso.Natso
-	DB              *gorm.DB
-	CacheNatsClient cache_nats_client.CacheNatsClient
+	Natso natso.Natso
+	DB    *gorm.DB
 }
 
 type LogDbNats struct {

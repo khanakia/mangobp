@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/khanakia/mangobp/mango/cache_nats_client"
 	"github.com/khanakia/mangobp/mango/nats_util"
 	"github.com/khanakia/mangobp/mango/natso"
 	"github.com/khanakia/mangobp/pkg/auth/auth_domain"
 	"github.com/khanakia/mangobp/pkg/auth/auth_fn"
 	"github.com/nats-io/nats.go"
 	"github.com/spf13/cast"
+	"github.com/ubgo/gofm/cache"
 	"github.com/ubgo/goutil"
 	"gorm.io/gorm"
 )
@@ -24,9 +24,9 @@ const (
 
 type Config struct {
 	// UserRepo auth_repo.UserRepo
-	Natso           natso.Natso
-	DB              *gorm.DB
-	CacheNatsClient cache_nats_client.CacheNatsClient
+	Natso natso.Natso
+	DB    *gorm.DB
+	Cache cache.Store
 }
 
 type AuthNats struct {
@@ -154,7 +154,7 @@ func LoginSubs(ec *nats.EncodedConn, config Config) {
 func ForgotPassSubs(ec *nats.EncodedConn, config Config) {
 	ec.Subscribe(NATS_AUTH_FORGOT_PASS_SUBJECT, func(subj, reply string, msg UserLoginReq) {
 		fmt.Println("MSG", cast.ToString(msg.UserName))
-		cnc := config.CacheNatsClient
+		cnc := config.Cache
 		// cnc.Put("test", "dfsd", 10000)
 		// cnc.Flush()
 		db := config.DB
@@ -171,7 +171,7 @@ func ForgotPassSubs(ec *nats.EncodedConn, config Config) {
 func ResetPassSubs(ec *nats.EncodedConn, config Config) {
 	ec.Subscribe(NATS_AUTH_RESET_PASS_SUBJECT, func(subj, reply string, msg auth_fn.ResetPasswordRequest) {
 
-		cnc := config.CacheNatsClient
+		cnc := config.Cache
 		// cnc.Put("test", "dfsd", 10000)
 		// cnc.Flush()
 		db := config.DB

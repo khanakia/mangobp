@@ -5,7 +5,7 @@ package wireapp
 
 import (
 	"github.com/google/wire"
-	"github.com/khanakia/mangobp/mango/cache_nats_client"
+	"github.com/khanakia/mangobp/mango/cache_nats"
 	"github.com/khanakia/mangobp/mango/cacherdbms"
 	"github.com/khanakia/mangobp/mango/cli"
 	"github.com/khanakia/mangobp/mango/configmgr"
@@ -14,17 +14,17 @@ import (
 	"github.com/khanakia/mangobp/mango/gormdb"
 	"github.com/khanakia/mangobp/mango/interfaces"
 	"github.com/khanakia/mangobp/mango/logdb"
-	"github.com/khanakia/mangobp/mango/logdb/logdb_nats_client"
 	"github.com/khanakia/mangobp/mango/natso"
 	"github.com/khanakia/mangobp/mango/xmail/xmail_app"
 	"github.com/khanakia/mangobp/pkg/auth/auth_app"
+	"github.com/khanakia/mangobp/pkg/cache_natsapi"
 	"github.com/khanakia/mangobp/pkg/dapp"
 	"github.com/ubgo/gofm/cache"
 	"github.com/ubgo/gofm/logger"
 	"gorm.io/gorm"
 )
 
-func NewGormConfig(dbConn dbconn.DbConn) gormdb.Config {
+func NewGormConfig(dbConn *dbconn.DbConn) gormdb.Config {
 	return gormdb.Config{
 		DB: dbConn.SqlDb,
 	}
@@ -57,17 +57,20 @@ func Init() Plugin {
 		NewGormDb,
 		wire.Struct(new(cacherdbms.Config), "*"),
 		cacherdbms.New,
-		wire.Bind(new(cache.Store), new(*cacherdbms.Rdbms)),
-		wire.Struct(new(cache.Config), "*"),
-		cache.New,
+		// wire.Bind(new(cache.Store), new(*cacherdbms.Rdbms)),
+		wire.Struct(new(cache_natsapi.Config), "*"),
+		cache_natsapi.New,
+		// wire.Struct(new(cache.Config), "*"),
+		// cache.New,
 		wire.Struct(new(natso.Config), "*"),
 		natso.New,
-		wire.Struct(new(cache_nats_client.Config), "*"),
-		cache_nats_client.New,
+		wire.Struct(new(cache_nats.Config), "*"),
+		cache_nats.New,
+		wire.Bind(new(cache.Store), new(*cache_nats.CacheNats)),
 		wire.Struct(new(logdb.Config), "*"),
 		logdb.New,
-		wire.Struct(new(logdb_nats_client.Config), "*"),
-		logdb_nats_client.New,
+		// wire.Struct(new(logdb_nats_client.Config), "*"),
+		// logdb_nats_client.New,
 		wire.Struct(new(xmail_app.Config), "*"),
 		xmail_app.New,
 		wire.Struct(new(auth_app.Config), "*"),

@@ -1,15 +1,13 @@
 package xmail_nats
 
 import (
-	"github.com/khanakia/mangobp/mango/cache_nats_client"
 	"github.com/khanakia/mangobp/mango/natso"
 	"gorm.io/gorm"
 )
 
 type Config struct {
-	DB              *gorm.DB
-	Natso           natso.Natso
-	CacheNatsClient cache_nats_client.CacheNatsClient
+	DB    *gorm.DB
+	Natso natso.Natso
 }
 
 type AuthNats struct {
